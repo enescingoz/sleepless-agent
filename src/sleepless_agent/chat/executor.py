@@ -55,8 +55,9 @@ class ChatExecutor:
         """Get or create workspace for chat session.
 
         Uses the project workspace since project is required.
+        Returns an absolute path.
         """
-        workspace = self.projects_dir / session.project_id
+        workspace = (self.projects_dir / session.project_id).resolve()
         workspace.mkdir(parents=True, exist_ok=True)
         return workspace
 
@@ -65,7 +66,7 @@ class ChatExecutor:
 
         Includes:
         - System context about chat mode
-        - Project information
+        - Project information and workspace path
         - Conversation history
         - Current user message
         """
@@ -75,7 +76,11 @@ class ChatExecutor:
             "You are Claude, an AI assistant engaged in an interactive chat session via Slack.",
             "",
             f"## Project: {session.project_name}",
-            f"You are working in the project workspace. Project ID: {session.project_id}",
+            f"Project ID: {session.project_id}",
+            f"Workspace Path: {session.workspace_path}",
+            "",
+            "IMPORTANT: All file operations must be performed within the workspace path above.",
+            "Use relative paths or the full workspace path. Do NOT create files in /tmp or other locations.",
             "",
         ]
 
@@ -95,6 +100,7 @@ class ChatExecutor:
                 "- Keep responses concise but informative",
                 "- You have full access to read, write, edit files and run commands",
                 "- When making changes, briefly summarize what you did",
+                f"- Create all files in: {session.workspace_path}",
             ]
         )
 
